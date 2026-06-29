@@ -12,19 +12,18 @@ export default function FaucetButton() {
   const disabled = !isConnected || isClaiming || claimed;
 
   return (
-    <div className="faucet">
-      <button className="btn btn-ghost" disabled={disabled} onClick={claim}>
-        <FiDroplet />
-        {isClaiming
-          ? "Đang gửi..."
-          : claimed
-            ? "Đã nhận faucet"
-            : `Nhận ${drip} AVAX`}
-      </button>
-
-      {status?.blockedReason && !isClaiming && (
-        <span className="faucet-hint">{status.blockedReason}</span>
-      )}
-    </div>
+    <button
+      className="btn btn-ghost"
+      disabled={disabled}
+      onClick={claim}
+      title={`Nhận ${drip} AVAX vào ví C-Chain đang kết nối`}
+    >
+      <FiDroplet />
+      {isClaiming
+        ? "Đang gửi..."
+        : claimed
+          ? "Đã nhận (C-Chain)"
+          : "Faucet C-Chain"}
+    </button>
   );
 }

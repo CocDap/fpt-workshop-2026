@@ -11,6 +11,7 @@
     "faucet": "node server/faucet.js"
   },
   "dependencies": {
+    "@avalabs/avalanchejs": "^5.1.0",
     "@tanstack/react-query": "^5.101.2",
     "@upstash/redis": "^1.38.0",
     "cors": "^2.8.6",

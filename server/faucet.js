@@ -6,6 +6,7 @@ import express from "express";
 import cors from "cors";
 
 import { createFaucet } from "./faucetCore.js";
+import { createPChainFaucet } from "./pchainFaucetCore.js";
 import { fileStore, redisStore, hasRedis } from "./stores.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -20,6 +21,7 @@ const store = usingRedis
   : fileStore(join(__dirname, "claims.json"));
 
 const faucet = createFaucet({ store });
+const pchainFaucet = createPChainFaucet({ store });
 
 const app = express();
 app.use(express.json());
@@ -41,10 +43,28 @@ app.post("/api/faucet", async (req, res) => {
   }
 });
 
+app.get("/api/faucet/pchain", async (req, res) => {
+  try {
+    res.json(await pchainFaucet.getStatus(String(req.query.address ?? "")));
+  } catch (err) {
+    res.status(err.status ?? 500).json({ error: err.message });
+  }
+});
+
+app.post("/api/faucet/pchain", async (req, res) => {
+  try {
+    res.json(await pchainFaucet.claim(String(req.body?.address ?? "")));
+  } catch (err) {
+    res.status(err.status ?? 500).json({ error: err.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`💧 Faucet server chạy tại http://localhost:${PORT}`);
-  console.log(`   Ví faucet : ${faucet.faucetAddress}`);
-  console.log(`   Mỗi lượt  : ${faucet.dripAmount} AVAX`);
+  console.log(`   Ví C-Chain: ${faucet.faucetAddress} (${faucet.dripAmount} AVAX)`);
+  console.log(
+    `   Ví P-Chain: ${pchainFaucet.faucetAddress} (${pchainFaucet.dripAmount} AVAX)`
+  );
   console.log(
     `   Giới hạn  : ${
       faucet.cooldownMs > 0

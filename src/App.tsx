@@ -1,6 +1,7 @@
 import ConnectWallet from "./components/wallet/ConnectWallet";
 import WalletInfo from "./components/wallet/WalletInfo";
 import FaucetButton from "./components/faucet/FaucetButton";
+import PChainFaucet from "./components/faucet/PChainFaucet";
 import CreateWorkshop from "./components/workshop/CreateWorkshop";
 import WorkshopList from "./components/workshop/WorkshopList";
 
@@ -15,7 +16,10 @@ function App() {
 
         <div className="header-actions">
           <ConnectWallet />
-          <FaucetButton />
+          <div className="faucet-actions">
+            <FaucetButton />
+            <PChainFaucet />
+          </div>
           <WalletInfo />
         </div>
       </header>
