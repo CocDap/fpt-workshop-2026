@@ -192,8 +192,10 @@ Frontend gọi `/api/faucet` **same-origin**, nên không cần `VITE_FAUCET_API
    | `RPC_URL` | `https://api.avax-test.network/ext/bc/C/rpc` | RPC tùy chỉnh |
    | `DRIP_AMOUNT` | `0.05` | |
    | `CLAIM_COOLDOWN_MS` | `0` | 0 = 1 lần/địa chỉ |
-   | `UPSTASH_REDIS_REST_URL` | *(tự thêm)* | từ bước 1 |
-   | `UPSTASH_REDIS_REST_TOKEN` | *(tự thêm)* | từ bước 1 |
+   | `KV_REST_API_URL` | *(tự thêm)* | tích hợp Upstash/Vercel tự cấp |
+   | `KV_REST_API_TOKEN` | *(tự thêm)* | tích hợp Upstash/Vercel tự cấp |
+
+   > Tích hợp Upstash trên Vercel cấp biến tên `KV_REST_API_URL` / `KV_REST_API_TOKEN` (không phải `UPSTASH_*`). Code đã đọc cả hai kiểu tên (ưu tiên `KV_*`, fallback `UPSTASH_*`). Các biến `KV_URL` / `REDIS_URL` là dạng kết nối TCP — không cần cho client REST này.
 
    > ⚠️ Tuyệt đối **không** đặt private key dưới tên `VITE_...` — mọi biến `VITE_*` bị nhúng vào bundle frontend và ai cũng đọc được.
 
