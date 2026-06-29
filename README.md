@@ -150,6 +150,62 @@ Toast (Sonner) bám theo trọn vòng đời và hiển thị lỗi đã chuẩn
 
 ---
 
+## Faucet AVAX (testing)
+
+Backend nhỏ tại [`server/faucet.js`](server/faucet.js) giữ private key ví faucet và phát **0.05 AVAX / địa chỉ**. Private key chỉ nằm ở backend, không bao giờ ra frontend.
+
+```bash
+# tạo .env (xem server/README.md), rồi chạy:
+npm run faucet
+```
+
+- Số tiền cố định ở server, mỗi địa chỉ chỉ nhận 1 lần (lưu local ở `server/claims.json`), có thể bật cooldown qua `CLAIM_COOLDOWN_MS`.
+- Frontend gọi qua `FaucetButton`. Local dev được Vite proxy `/api` sang `:8787`.
+- Chi tiết: [`server/README.md`](server/README.md).
+
+---
+
+## Deploy lên Vercel
+
+Vercel là **serverless** nên không chạy được Express thường trú và **không ghi file được** (`claims.json` sẽ mất). Vì vậy faucet được đóng gói thành Serverless Function + dùng KV/Redis để lưu trạng thái.
+
+### Cấu trúc tương thích Vercel
+
+```
+api/faucet.js          # Serverless Function (Vercel tự nhận diện thư mục /api)
+server/faucetCore.js   # Logic dùng chung
+server/stores.js       # fileStore (local) | redisStore (Vercel)
+src/                   # Frontend Vite -> build ra dist/ (static)
+```
+
+Frontend gọi `/api/faucet` **same-origin**, nên không cần `VITE_FAUCET_API` khi deploy.
+
+### Các bước
+
+1. **Tạo KV store**: trong Vercel → *Storage* → tạo **Upstash Redis** (hoặc Marketplace KV). Nó tự thêm 2 biến `UPSTASH_REDIS_REST_URL` và `UPSTASH_REDIS_REST_TOKEN` vào project.
+2. **Import repo** vào Vercel. Framework preset: **Vite** (Build: `npm run build`, Output: `dist`). Thư mục `api/` tự thành Serverless Functions.
+3. **Khai báo Environment Variables** (Settings → Environment Variables):
+
+   | Biến | Ví dụ | Ghi chú |
+   | --- | --- | --- |
+   | `FAUCET_PRIVATE_KEY` | `0x...` | **Bí mật** — chỉ ở server, không phải `VITE_*` |
+   | `RPC_URL` | `https://api.avax-test.network/ext/bc/C/rpc` | RPC tùy chỉnh |
+   | `DRIP_AMOUNT` | `0.05` | |
+   | `CLAIM_COOLDOWN_MS` | `0` | 0 = 1 lần/địa chỉ |
+   | `UPSTASH_REDIS_REST_URL` | *(tự thêm)* | từ bước 1 |
+   | `UPSTASH_REDIS_REST_TOKEN` | *(tự thêm)* | từ bước 1 |
+
+   > ⚠️ Tuyệt đối **không** đặt private key dưới tên `VITE_...` — mọi biến `VITE_*` bị nhúng vào bundle frontend và ai cũng đọc được.
+
+4. **Deploy**. Xong thì faucet ở `https://<app>.vercel.app/api/faucet`, frontend ở `https://<app>.vercel.app`.
+
+### Lưu ý
+
+- `claims.json` (file store) **chỉ dùng local**; trên Vercel bắt buộc dùng Redis vì filesystem ephemeral và mỗi invocation là một tiến trình riêng. `store.reserve` dùng `SET NX` atomic của Redis để chặn double-claim khi có nhiều request đồng thời.
+- Nếu muốn giữ Express (vd deploy faucet riêng trên Railway/Render), chỉ cần trỏ `VITE_FAUCET_API` của frontend sang URL backend đó và set `CORS_ORIGIN` = domain Vercel.
+
+---
+
 ## Roadmap triển khai
 
 - **Bước 1** — Viết Smart Contract `FPT.sol` với đầy đủ event, custom error và test.

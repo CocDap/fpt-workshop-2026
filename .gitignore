@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Env & faucet runtime state
+.env
+.env.*
+!.env.sample
+server/claims.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
