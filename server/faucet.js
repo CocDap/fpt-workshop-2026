@@ -6,7 +6,7 @@ import express from "express";
 import cors from "cors";
 
 import { createFaucet } from "./faucetCore.js";
-import { fileStore, redisStore } from "./stores.js";
+import { fileStore, redisStore, hasRedis } from "./stores.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -14,7 +14,8 @@ const PORT = Number(process.env.PORT ?? 8787);
 const CORS_ORIGIN = process.env.CORS_ORIGIN ?? "http://localhost:5173";
 
 // Có Redis thì dùng Redis, không thì lưu file JSON (tiện cho local dev).
-const store = process.env.UPSTASH_REDIS_REST_URL
+const usingRedis = hasRedis();
+const store = usingRedis
   ? redisStore()
   : fileStore(join(__dirname, "claims.json"));
 
@@ -52,6 +53,6 @@ app.listen(PORT, () => {
     }`
   );
   console.log(
-    `   Store     : ${process.env.UPSTASH_REDIS_REST_URL ? "Upstash Redis" : "file (claims.json)"}`
+    `   Store     : ${usingRedis ? "Upstash Redis (KV)" : "file (claims.json)"}`
   );
 });

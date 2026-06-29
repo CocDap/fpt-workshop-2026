@@ -59,9 +59,28 @@ export function fileStore(filePath) {
   };
 }
 
+/** Tên biến REST mà tích hợp Upstash trên Vercel (KV_*) hoặc Upstash trực tiếp (UPSTASH_*) cấp. */
+export function getRedisCredentials() {
+  const url = process.env.KV_REST_API_URL ?? process.env.UPSTASH_REDIS_REST_URL;
+  const token =
+    process.env.KV_REST_API_TOKEN ?? process.env.UPSTASH_REDIS_REST_TOKEN;
+  return { url, token };
+}
+
+export function hasRedis() {
+  const { url, token } = getRedisCredentials();
+  return Boolean(url && token);
+}
+
 /** Store dùng Upstash Redis (Vercel KV) — bắt buộc cho serverless trên Vercel. */
 export function redisStore() {
-  const redis = Redis.fromEnv(); // UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN
+  const { url, token } = getRedisCredentials();
+  if (!url || !token) {
+    throw new Error(
+      "Thiếu KV_REST_API_URL/KV_REST_API_TOKEN (hoặc UPSTASH_REDIS_REST_URL/TOKEN)"
+    );
+  }
+  const redis = new Redis({ url, token });
   const k = (key) => `faucet:${key}`;
 
   return {
